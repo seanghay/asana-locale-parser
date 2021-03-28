@@ -62,9 +62,15 @@ const outputs = computed(() => {
 
   lines
     .map((line) => {
+      if (line.startsWith('@')) return null;
+      if (/\@file:\s*(\w+)/gm.exec(line)) {
+        return null;
+      }
+
       const regex = /^(\w+):[^\S\r\n]*(.+)/gm;
       const matches = regex.exec(line);
 
+      
       if (!matches) {
         if (line.trim().length != 0) {
           if (
@@ -151,7 +157,11 @@ const outputs = computed(() => {
 
 
 async function createZipFile() {
-  console.log(outputs.value)
+  let filename = 'strings.xml';
+  const filenameResult = /\@file:\s*(\w+)/gm.exec(state.value)
+  if (filenameResult) {
+    filename = filenameResult[1] + '.xml';
+  }  
   const zip = new JSZip();
   outputs.value.forEach(item => {
     let localeKey = item.locale;
@@ -160,7 +170,7 @@ async function createZipFile() {
     } else {
       localeKey =`values-${localeKey.toLowerCase()}`
     }
-    zip.folder(localeKey).file('strings.xml', item.value);
+    zip.folder(localeKey).file(filename, item.value);
   });
 
   const blob = await zip.generateAsync({ type: 'blob' });
