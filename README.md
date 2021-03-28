@@ -128,4 +128,14 @@ en: English
 km: ខ្មែរ
 ```
 
+Result:
+
+```
+├── values
+│   └── my_file_name.xml
+└── values-km
+    └── my_file_name.xml
+
+2 directories, 2 files
+```
 
