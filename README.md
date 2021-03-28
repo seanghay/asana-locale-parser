@@ -73,13 +73,7 @@ Output:
 
 ### Resource Name
 
-If you need to specify `name` for each item, you can use `#hashtag` 
-
-
-
-### Headers
-
-Keep our resource string tidy by specifying a header.
+If you need to specify `name` for each item, you can use `#hashtag`. The hashtag can be placed anywhere in the header.
 
 ```
 MainActivity #title_content_main
