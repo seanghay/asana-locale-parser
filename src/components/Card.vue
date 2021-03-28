@@ -1,7 +1,10 @@
 <template>
   <div class="rounded-sm bg-white shadow-sm px-6 py-4 flex flex-col w-200">
-    <h1 class="text-xl font-semibold">Asana Locale Parser</h1>
-    <p class="text-sm text-gray-500">Enter the message you want to parse</p>
+    <div>
+      <h1 class="text-xl font-semibold">Android Locale Parser</h1>
+      <p class="text-sm text-gray-500">Enter the message you want to parse</p>
+      <button @click="createZipFile()" :disabled="outputs.length == 0" class="btn">Download ZIP</button>
+    </div>
     <textarea
       v-model="state.value"
       rows="10"
@@ -20,6 +23,8 @@
 
 <script setup>
 import { computed, reactive } from "vue";
+import JSZip from 'jszip'
+import { saveAs } from 'file-saver';
 
 const locales = {
   khmer: "km",
@@ -27,16 +32,25 @@ const locales = {
   chinese: "zh",
 };
 
+
 function transformLocale(locale) {
   if (!locale) return null;
   if (typeof locale !== "string") return null;
   const key = locale.toLowerCase();
-  return locales[key];
+  return locales[key] || locale;
 }
 
 const state = reactive({
   value: "",
 });
+
+function extractNameFromTitle(value) {
+  const result = /#(\w+)/i.exec(value);
+  if (!result) {
+    return "";
+  }
+  return result[1];
+}
 
 const outputs = computed(() => {
   const lines = state.value.split("\n");
@@ -91,15 +105,21 @@ const outputs = computed(() => {
         });
       }
 
-      let xmlValue = `<string name="">${newValue}</string>\n`;
-
+      let id = "";
+      let xmlValue = "";
       if (prevLine) {
         if (childPrevLine) {
-          xmlValue = `<!--[${prevLine}] - ${childPrevLine} -->\n` + xmlValue;
+          id = extractNameFromTitle(childPrevLine);
+          xmlValue = `<!--[${prevLine}] - ${childPrevLine
+            .replace("#" + id, "")
+            .trim()} -->\n`;
         } else {
-          xmlValue = `<!-- [${prevLine}] -->\n` + xmlValue;
+          id = extractNameFromTitle(prevLine);
+          xmlValue = `<!-- [${prevLine.replace("#" + id, "").trim()}] -->\n`;
         }
       }
+
+      xmlValue += `<string name="${id}">${newValue}</string>\n`;
 
       return {
         locale,
@@ -124,9 +144,34 @@ const outputs = computed(() => {
       translations[item.locale].push(item.xmlValue);
     });
 
-
   return Object.keys(translations).map((it) => {
     return { locale: it, value: translations[it].join("\n") };
   });
 });
+
+
+async function createZipFile() {
+  console.log(outputs.value)
+  const zip = new JSZip();
+  outputs.value.forEach(item => {
+    let localeKey = item.locale;
+    if (localeKey === 'en') {
+      localeKey = 'values' 
+    } else {
+      localeKey =`values-${localeKey.toLowerCase()}`
+    }
+    zip.folder(localeKey).file('strings.xml', item.value);
+  });
+
+  const blob = await zip.generateAsync({ type: 'blob' });
+  saveAs(blob, 'locales.zip');
+}
+
 </script>
+
+
+<style lang="postcss" scoped>
+.btn {
+  @apply transition disabled:cursor-auto disabled:shadow-none disabled:text-gray-400 bg-green-500 disabled:bg-gray-200 font-semibold hover:bg-green-600 shadow outline-none text-white rounded-lg px-4 py-2 mt-2;
+}
+</style>
