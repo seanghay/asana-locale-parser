@@ -171,7 +171,9 @@ async function createZipFile() {
     } else {
       localeKey =`values-${localeKey.toLowerCase()}`
     }
-    zip.folder(localeKey).file(filename, item.value);
+
+    const content = `<?xml version="1.0" encoding="utf-8"?>\n<resources>\n${item.value}</resources>`
+    zip.folder(localeKey).file(filename, content);
   });
 
   const blob = await zip.generateAsync({ type: 'blob' });
