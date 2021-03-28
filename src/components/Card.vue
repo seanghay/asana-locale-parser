@@ -4,6 +4,7 @@
       <h1 class="text-xl font-semibold">Android Locale Parser</h1>
       <p class="text-sm text-gray-500">Enter the message you want to parse</p>
       <button @click="createZipFile()" :disabled="outputs.length == 0" class="btn">Download ZIP</button>
+      <button @click="loadExample()" class="btn-new ml-2">Load an example</button>
     </div>
     <textarea
       v-model="state.value"
@@ -177,11 +178,30 @@ async function createZipFile() {
   saveAs(blob, 'locales.zip');
 }
 
+function loadExample() {  
+  const content = `@file: accounts
+My Profile
+
+- #title_account Accounts
+km: គណនី
+en: Account
+
+- #message_balance Balance Message
+km: ទឹកប្រាក់លោកអ្នកគឺ <amount>
+en: Your balance is <amount>
+`
+state.value = content;
+}
+
 </script>
 
 
 <style lang="postcss" scoped>
 .btn {
   @apply transition disabled:cursor-auto disabled:shadow-none disabled:text-gray-400 bg-green-500 disabled:bg-gray-200 font-semibold hover:bg-green-600 shadow outline-none text-white rounded-lg px-4 py-2 mt-2;
+}
+
+.btn-new {
+  @apply transition disabled:cursor-auto disabled:shadow-none disabled:text-gray-400 bg-blue-500 disabled:bg-gray-200 font-semibold hover:bg-blue-600 shadow outline-none text-white rounded-lg px-4 py-2 mt-2;
 }
 </style>
